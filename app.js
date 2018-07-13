@@ -1,9 +1,13 @@
 // Import libraries
 const express = require('express'),
-      bodyParser = require('body-parser');
+      bodyParser = require('body-parser'),
+      mongoose = require('mongoose');
 
 // Import other files
 const router = require('./routes/index');
+
+// Import config files
+const databaseConfig = require('./config/database');
 
 // Create an express instance
 var app = express();
@@ -17,6 +21,9 @@ var port = process.env.PORT || 3000;
 
 // Set the app to use our router
 app.use('/', router);
+
+// Connect to MongoDB
+mongoose.connect(databaseConfig.address);
 
 // Start the server
 app.listen(port);
