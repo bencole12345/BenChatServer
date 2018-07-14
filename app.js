@@ -23,7 +23,13 @@ var port = process.env.PORT || 3000;
 app.use('/', router);
 
 // Connect to MongoDB
-mongoose.connect(databaseConfig.address);
+mongoose.connect(databaseConfig.address)
+    .then(function(result) {
+        console.log("Successfully connected to database!");
+    })
+    .catch(function(err) {
+        console.log(err);
+    });
 
 // Start the server
 app.listen(port);
