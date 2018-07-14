@@ -12,9 +12,10 @@ Verb | Route | Description
 --- | --- | ---
 `POST` | `/auth/register` | Register a new user. The username must not already be taken.
 `POST` | `/auth/login` | Log in a new user. This endpoint tells you whether the login details are correct.
-`POST` | `/conversations` | Create a new conversation with the supplied list of other users.
-`GET`  | `/conversations/:conversationId` | Get all or a subset of the messages sent to a conversation, in chronological order. The user must be a member of this conversation in order for the request to be accepted.
-`POST` | `/conversations/:conversationId` | Send a new message to a conversation. The user must be a member of this conversation in order for the request to be approved.
+`POST`  | `/conversations/all` | Get all conversations involving the current user.
+`POST` | `/conversations/new` | Create a new conversation with the supplied list of other users.
+`POST`  | `/messages/view` | Get all or a subset of the messages sent to a conversation, in chronological order. The user must be a member of this conversation in order for the request to be accepted.
+`POST` | `/messages/send` | Send a new message to a conversation. The user must be a member of this conversation in order for the request to be approved.
 
 ## Users and Authentication
 
