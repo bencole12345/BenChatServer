@@ -1,7 +1,8 @@
 // Import libraries
 const express = require('express'),
       bodyParser = require('body-parser'),
-      mongoose = require('mongoose');
+      mongoose = require('mongoose'),
+      passport = require('passport');
 
 // Import other files
 const router = require('./routes/index');
@@ -15,6 +16,9 @@ var app = express();
 // Configure the app to use body-parser to correctly parse data from requests
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+// Set up passport
+app.use(passport.initialize());
 
 // Figure out which port to use
 var port = process.env.PORT || 3000;
