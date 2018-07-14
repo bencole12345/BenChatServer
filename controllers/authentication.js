@@ -23,8 +23,6 @@ exports.register = function(req, res, next) {
             password: password
         });
 
-        console.log(user);
-
         user.save(function(err, user) {
             if (err) return next(err);
             return res.status(201).send(user.filterSensitiveInformation());
