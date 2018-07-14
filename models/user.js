@@ -6,6 +6,7 @@ const UserSchema = new Schema({
     _id: Schema.Types.ObjectId,
     username: {
         type: String,
+        unique: true,
         required: true
     },
     password: {
