@@ -8,7 +8,7 @@ exports.createConversation = function(req, res) {
         });
     }
     User.findOne({ username: req.body.username }, function(err, sendingUser) {
-        if (err || !sendingUser) return res.status(200).send(err);
+        if (err || !sendingUser) return res.status(400).send(err);
         Conversation.findOne({participants: [
                 sendingUser._id,
                 req.body.otherUserId
