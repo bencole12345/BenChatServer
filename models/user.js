@@ -35,4 +35,11 @@ UserSchema.methods.comparePassword = function(candidatePassword, cb) {
     })
 };
 
+UserSchema.methods.filterSensitiveInformation = function() {
+    return {
+        _id: this._id,
+        username: this.username
+    }
+};
+
 module.exports = mongoose.model('User', UserSchema);
