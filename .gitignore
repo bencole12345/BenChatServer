@@ -62,3 +62,6 @@ typings/
 
 # Config files
 config/*
+
+# IDE stuff
+.idea/
