@@ -49,7 +49,9 @@ To check that a username and password are valid, send a `POST` request to `/auth
 
 If the login details are correct, the server will respond with an HTTP status 200 (success), and will send back the `username`, along with that user's `_id` attribute. If the password is incorrect, or if the username has not been registered, the server will respond with HTTP code 401 (unauthorised).
 
-## Starting a Conversation
+## Exchanging Messages
+
+### Start a Conversation
 Before anyone can send a message, they first need to be part of a conversation. A conversation can be started with another user by sending a `POST` request to `/conversations/new` with the following data:
 
 ```
@@ -62,7 +64,7 @@ Before anyone can send a message, they first need to be part of a conversation. 
 
 Note that `otherUserId` refers to the `_id` of the other user and not their `username`. Success will be indicated by an HTTP 201 status (resource created). If a conversation between the two users already exists, this will be indicated by HTTP 422 status, and the `_id` of that conversation will be included in the response.
 
-## Sending a Message
+### Send a Message
 Messages are not sent to users: rather, they are sent to conversations. Send an HTTP `POST` request to `/messages/send` containing the following data:
 
 ```
@@ -76,8 +78,8 @@ Messages are not sent to users: rather, they are sent to conversations. Send an 
 
 Success will be indicated by an HTTP code 201. If the user sending the request is not a member of that conversation, an HTTP code 401 (forbidden) will be returned instead.
 
-## Receiving Messages
-For now, messages are received by sending a `POST` request to `/messages/view`. The request should contain the following information:
+### Receive Messages
+For now, messages are received by sending a `POST` request to `/messages/view`. This returns all messages sent to the specified conversation. The request should contain the following information:
 
 ```
 {
@@ -90,3 +92,15 @@ For now, messages are received by sending a `POST` request to `/messages/view`. 
 An HTTP code 200 indicates success: a list of messages will be returned. Similarly to sending a message, if the user is not a member of that conversation, the response will instead have code 401 (forbidden) and no messages will be returned.
 
 In the future, this endpoint will be expanded to allow for more control: for example, you will be able to request a subset of messages, such as "send me the most recent 100 messages."
+
+### List all Conversations
+To view all conversations involving a user, simply `POST` their details like before to `/conversations/all` in the following format:
+
+```
+{
+    "username": <username>,
+    "password": <password>
+}
+```
+
+Assuming the user is correctly authenticated, the server will respond with an HTTP code 200 (OK) along with a list of all conversations in which the user is a member. If the username is invalid or the password is incorrect, the response will instead be a 401 (unauthorised).
