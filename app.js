@@ -7,9 +7,6 @@ const express = require('express'),
 // Import other files
 const router = require('./routes/index');
 
-// Import config files
-const databaseConfig = require('./config/database');
-
 // Create an express instance
 var app = express();
 
@@ -27,7 +24,8 @@ var port = process.env.PORT || 3000;
 app.use('/', router);
 
 // Connect to MongoDB
-mongoose.connect(process.env.DATABASE_URI || databaseConfig.address)
+const databaseURI = process.env.DATABASE_URI || "mongodb://localhost:27017";
+mongoose.connect(databaseURI));
     .then(function(result) {
         console.log("Successfully connected to database!");
     })
