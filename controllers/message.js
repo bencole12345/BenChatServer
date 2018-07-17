@@ -33,6 +33,7 @@ exports.getMessages = function(req, res) {
             if (err) return res.status(500).send(err);
             if (!conversation) return res.status(400).send({ error: "conversationId not recognised." });
             Message.find({ conversationId: req.body.conversationId })
+                .populate('author', '-password')
                 .sort({ createdAt: 'ascending' })
                 .exec(function(err, messages) {
                     if (err) return res.status(500).send(err);
