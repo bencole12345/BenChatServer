@@ -37,9 +37,11 @@ exports.getConversations = function(req, res) {
     User.findOne({ username: req.body.username }, function(err, user) {
         if (err) return res.status(500).send(err);
         if (!user) return res.status(500).send({ error: "An internal server error occurred." });
-        Conversation.find({ participants: { $in: [user._id] } }, function(err, conversations) {
+        Conversation.find({ participants: { $in: [user._id] }})
+          .populate('participants', '-password')
+          .exec(function(err, conversations) {
             if (err) return res.status(500).send(err);
             return res.status(200).send(conversations);
-        });
+          });
     });
 };
