@@ -2,37 +2,35 @@ const Conversation = require('../models/conversation');
 const User = require('../models/user');
 
 exports.createConversation = function(req, res) {
-    if (!req.body.otherUserId && !req.body.otherUsername) {
+    if (!req.body.otherUsername) {
         return res.status(400).send({
-            error: "You must include otherUserId or otherUsername."
+            error: "You must include otherUsername."
         });
     }
-    if (req.body.otherUserId) {
-        queryParams = { _id: req.body.otherUserId };
-    } else {
-        queryParams = { username: req.body.otherUsername };
-    }
-    User.findOne(queryParams, function(err, sendingUser) {
-        if (err || !sendingUser) return res.status(400).send(err);
-        Conversation.findOne({participants: [
-                sendingUser._id,
-                req.body.otherUserId
-            ]}, function(err, existingConversation) {
-            if (err) return res.status(500).send(err);
-            if (existingConversation) return res.status(422).send({
-                error: "A conversation between these users already exists.",
-                _id: existingConversation._id
-            });
-            // We are clear to make a new conversation
-            const conversation = new Conversation({
-                participants: [
+    User.findOne({ username: req.body.username }, function(err, sendingUser) {
+        if (err || !sendingUser) return res.status(200).send(err);
+        User.findOne({ username: req.body.otherUsername }, function(err, otherUser) {
+            if (err) return res.status(400).send(err);
+            Conversation.findOne({participants: [
                     sendingUser._id,
-                    req.body.otherUserId
-                ]
-            });
-            conversation.save(function(err, convo) {
+                    otherUser._id
+                ]}, function(err, existingConversation) {
                 if (err) return res.status(500).send(err);
-                return res.status(201).send(convo);
+                if (existingConversation) return res.status(422).send({
+                    error: "A conversation between these users already exists.",
+                    _id: existingConversation._id
+                });
+                // We are clear to make a new conversation
+                const conversation = new Conversation({
+                    participants: [
+                        sendingUser._id,
+                        otherUser._id
+                    ]
+                });
+                conversation.save(function(err, convo) {
+                    if (err) return res.status(500).send(err);
+                    return res.status(201).send(convo);
+                });
             });
         });
     });
