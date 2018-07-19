@@ -2,12 +2,17 @@ const Conversation = require('../models/conversation');
 const User = require('../models/user');
 
 exports.createConversation = function(req, res) {
-    if (!req.body.otherUserId) {
+    if (!req.body.otherUserId && !req.body.otherUsername) {
         return res.status(400).send({
-            error: "You must include otherUserId."
+            error: "You must include otherUserId or otherUsername."
         });
     }
-    User.findOne({ username: req.body.username }, function(err, sendingUser) {
+    if (req.body.otherUserId) {
+        queryParams = { _id: req.body.otherUserId };
+    } else {
+        queryParams = { username: req.body.otherUsername };
+    }
+    User.findOne(queryParams, function(err, sendingUser) {
         if (err || !sendingUser) return res.status(400).send(err);
         Conversation.findOne({participants: [
                 sendingUser._id,

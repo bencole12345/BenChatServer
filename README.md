@@ -52,7 +52,9 @@ If the login details are correct, the server will respond with an HTTP status 20
 ## Exchanging Messages
 
 ### Start a Conversation
-Before anyone can send a message, they first need to be part of a conversation. A conversation can be started with another user by sending a `POST` request to `/conversations/new` with the following data:
+Before anyone can send a message, they first need to be part of a conversation. A conversation can be started with another user via a `POST` request to `/conversations/new`.
+
+There are two ways the other user can be specified. For performance reasons, it is faster to specify the id of the other user, like this:
 
 ```
 {
@@ -62,7 +64,17 @@ Before anyone can send a message, they first need to be part of a conversation. 
 }
 ```
 
-Note that `otherUserId` refers to the `_id` of the other user and not their `username`. Success will be indicated by an HTTP 201 status (resource created). If a conversation between the two users already exists, this will be indicated by HTTP 422 status, and the `_id` of that conversation will be included in the response.
+Alternatively, one can instead specify the username of the other user. This method should only be used if the id is not known. The data should be formatted like:
+
+```
+{
+    "username": <username>,
+    "password": <password>,
+    "otherUsername": <the username of the other user>
+}
+```
+
+Success will be indicated by an HTTP 201 status (resource created). If a conversation between the two users already exists, this will be indicated by HTTP 422 status, and the `_id` of that conversation will be included in the response.
 
 ### Send a Message
 Messages are not sent to users: rather, they are sent to conversations. Send an HTTP `POST` request to `/messages/send` containing the following data:
