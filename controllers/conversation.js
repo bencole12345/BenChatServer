@@ -8,9 +8,10 @@ exports.createConversation = function(req, res) {
         });
     }
     User.findOne({ username: req.body.username }, function(err, sendingUser) {
-        if (err || !sendingUser) return res.status(200).send(err);
+        if (err || !sendingUser) return res.status(500).send(err);
         User.findOne({ username: req.body.otherUsername }, function(err, otherUser) {
-            if (err) return res.status(400).send(err);
+            if (err) return res.status(500).send(err);
+            if (!otherUser) return res.status(400).send({ error: "Username not recognised." });
             Conversation.findOne({participants: [
                     sendingUser._id,
                     otherUser._id
@@ -41,10 +42,10 @@ exports.getConversations = function(req, res) {
         if (err) return res.status(500).send(err);
         if (!user) return res.status(500).send({ error: "An internal server error occurred." });
         Conversation.find({ participants: { $in: [user._id] }})
-          .populate('participants', '-password')
-          .exec(function(err, conversations) {
-            if (err) return res.status(500).send(err);
-            return res.status(200).send(conversations);
-          });
+            .populate('participants', '-password')
+            .exec(function(err, conversations) {
+                if (err) return res.status(500).send(err);
+                return res.status(200).send(conversations);
+        });
     });
 };
