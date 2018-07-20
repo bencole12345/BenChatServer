@@ -4,6 +4,7 @@ const passport = require('passport');
 const AuthenticationController = require('../controllers/authentication');
 const ConversationController = require('../controllers/conversation');
 const MessageController = require('../controllers/message');
+const FriendController = require('../controllers/friend');
 
 const passportService = require('../initialisation/passport');  // Setup, registers the LocalStrategy
 const requireLogin = passport.authenticate('local', { session: false });  // Middleware
@@ -40,5 +41,15 @@ const messageRouter = express.Router();
 router.use('/messages', messageRouter);
 messageRouter.use('/view', requireLogin, MessageController.getMessages);
 messageRouter.use('/send', requireLogin, MessageController.sendMessage);
+
+/**
+ * Friends routing (/friends)
+ */
+const friendRouter = express.Router();
+router.use('/friends', friendRouter);
+friendRouter.use('/add', requireLogin, FriendController.addFriend);
+friendRouter.use('/all', requireLogin, FriendController.allFriends);
+friendRouter.use('/all-requests', requireLogin, FriendController.allFriendRequests);
+friendRouter.use('/respond', requireLogin, FriendController.respondToFriendRequest);
 
 module.exports = router;
