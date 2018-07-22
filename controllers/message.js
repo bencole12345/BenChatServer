@@ -11,6 +11,7 @@ exports.sendMessage = function(req, res) {
         Conversation.findOne({ _id: req.body.conversationId}, function(err, conversation) {
             if (err) return res.status(500).send(err);
             if (!conversation) return res.status(400).send({ error: "conversationId not recognised." });
+            // TODO: Ensure sender is a member of this conversation
             message = new Message({
                 author: user._id,
                 conversationId: conversation._id,

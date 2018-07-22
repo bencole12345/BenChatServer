@@ -1,4 +1,3 @@
-const Friendship = require('../models/friendship');
 const FriendRequest = require('../models/friendRequest');
 const User = require('../models/user');
 
@@ -17,23 +16,27 @@ exports.addFriend = function(req, res) {
         if (!thisUser) return res.status(500).send({ error: "An internal error occurred." });
         User.findOne({ username: req.body.otherUsername }, function(err, otherUser) {
             if (err) return res.status(500).send(err);
-            if (!otherUser) return res.status(422).send({ error: "User not found." });
-            Friendship.findOne({ members: [thisUser._id, otherUser._id] }, function(err, existingFriendship) {
-                if (err) return res.status(500).send(err);
-                if (existingFriendship && existingFriendship.approved) return res.status(422).send({
-                    error: "You are already friends!",
-                    _id: existingFriendship._id
-                });
-                FriendRequest
-                    .find()
-                    // ASSERTION: Nobody manages to send a friend request to them self!!
-                    .where('sentFrom').in([thisUser._id, otherUser._id])
-                    .where('sentTo').in([thisUser._id, otherUser._id])
-                    .exec(function(err, existingPendingFriendship) {
-                        if (err) return res.status(422).send({
-                            err: "You already have a pending friendship!",
-                            _id: existingPendingFriendship._id
-                        });
+            if (!otherUser) return res.status(404).send({ error: "User not found." });
+            if (thisUser.friends.some((id) => id.equals(otherUser._id)))
+                return res.status(422).send({error: "You are already friends!"});
+            FriendRequest
+                .findOne()
+                .or([{
+                        sentFrom: thisUser._id,
+                        sentTo: otherUser._id
+                    }, {
+                        sentFrom: otherUser._id,
+                        sentTo: thisUser._id
+                    }])
+                .exec(function(err, existingPendingFriendship) {
+                        if (err) return res.status(500).send(err);
+                        if (existingPendingFriendship) {
+                            console.log(existingPendingFriendship);
+                            return res.status(422).send({
+                                err: "You already have a pending friendship!",
+                                _id: existingPendingFriendship._id
+                            });
+                        }
                         const pendingFriendship = new FriendRequest({
                             sentFrom: thisUser._id,
                             sentTo: otherUser._id
@@ -42,9 +45,7 @@ exports.addFriend = function(req, res) {
                             if (err) return res.status(500).send(err);
                             return res.status(201).send(createdPendingFriendship);
                         });
-                    }
-                );
-            });
+                    });
         });
     });
 };
@@ -53,18 +54,13 @@ exports.addFriend = function(req, res) {
  * Get a list of all friends.
  */
 exports.allFriends = function(req, res) {
-    User.findOne({username: req.body.username}, function(err, user) {
-        if (err) return res.status(500).send(err);
-        if (!user) return res.status(500).send({error: "An internal error occurred."});
-        Friendship.find({
-            members: {
-                $in: [user._id]
-            }
-        }, function(err, friendships) {
+    User.findOne({username: req.body.username})
+        .populate('friends', '_id username')
+        .exec(function(err, user) {
             if (err) return res.status(500).send(err);
-            return res.status(200).send(friendships);
+            if (!user) return res.status(500).send({error: "An internal error occurred."});
+            return res.status(200).send(user.friends);
         });
-    })
 };
 
 /**
@@ -107,30 +103,36 @@ exports.respondToFriendRequest = function(req, res) {
         if (err) return res.status(500).send(err);
         if (!user) return res.status(500).send({error: "An internal error occurred."});
         FriendRequest.findById(req.body.friendRequestId, function(err, existingFriendRequest) {
-                if (err) return res.status(500).send(err);
-                if (!existingFriendRequest) return res.status(422).send({error: "Friend request not found."});
-                if (!existingFriendRequest.sentTo.equals(user._id)) return res.status(401).send({
-                    error: "You do not have permission to accept or deny this friend request."
-                });
-                if (req.body.response === "accept") {
-                    const otherUserId = existingFriendRequest.sentFrom;
+            if (err) return res.status(500).send(err);
+            if (!existingFriendRequest) return res.status(404).send({error: "Friend request not found."});
+            if (!existingFriendRequest.sentTo.equals(user._id)) return res.status(401).send({
+                error: "You do not have permission to accept or deny this friend request."
+            });
+            if (req.body.response === "accept") {
+                User.findById(existingFriendRequest.sentFrom, function(err, otherUser) {
+                    if (err) return res.status(500).send(err);
+                    if (!otherUser) return res.status(500).send({error: "An internal error occurred."});
                     FriendRequest.findOneAndDelete({_id: existingFriendRequest._id}, function(err, result) {
                         if (err) return res.status(500).send(err);
-                        const friendship = new Friendship({
-                            members: [user._id, otherUserId]
-                        });
-                        friendship.save(function(err, createdFriendship) {
+                        user.friends.push(otherUser._id);
+                        user.save(function(err, result) {
                             if (err) return res.status(500).send(err);
-                            if (!createdFriendship) return res.status(500).send({error: "An internal error occurred."});
-                            return res.status(200).send(createdFriendship);
+                            if (!result) return res.status(500).send({error: "An internal error occurred."});
+                            otherUser.friends.push(user._id);
+                            otherUser.save(function(err, result) {
+                                if (err) return res.status(500).send(err);
+                                if (!result) return res.status(500).send({error: "An internal error occurred."});
+                                return res.status(200).send();
+                            });
                         })
                     });
-                } else {
-                    FriendRequest.findOneAndDelete({_id: existingFriendRequest._id}, function(err, result) {
-                        if (err) return res.status(500).send(err);
-                        return res.status(200).send("Deleted!");
-                    })
-                }
+                });
+            } else {
+                FriendRequest.findOneAndDelete({_id: existingFriendRequest._id}, function(err, result) {
+                    if (err) return res.status(500).send(err);
+                    return res.status(200).send("Deleted!");
+                })
+            }
         });
     });
 };

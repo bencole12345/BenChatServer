@@ -11,7 +11,12 @@ const UserSchema = new Schema({
     password: {
         type: String,
         required: true
-    }
+    },
+    friends: [{
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        default: []
+    }]
 });
 
 UserSchema.pre('save', function(next) {
