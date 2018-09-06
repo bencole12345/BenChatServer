@@ -2,7 +2,11 @@
 const express = require('express'),
       bodyParser = require('body-parser'),
       mongoose = require('mongoose'),
-      passport = require('passport');
+      passport = require('passport'),
+      dotenv = require('dotenv');
+
+// Load environment variables
+dotenv.load();
 
 // Import other files
 const router = require('./routes/index');
