@@ -20,7 +20,7 @@ exports.addFriend = function(req, res) {
             if (err) return res.status(500).send(err);
             if (!otherUser) return res.status(404).send({ error: "User not found." });
             if (thisUser.friends.some((id) => id.equals(otherUser._id)))
-                return res.status(422).send({error: "You are already friends!"});
+                return res.status(422).send({error: "You are already friends!", alreadyFriends: true});
             FriendRequest
                 .findOne()
                 .or([{
@@ -36,6 +36,7 @@ exports.addFriend = function(req, res) {
                             console.log(existingPendingFriendship);
                             return res.status(422).send({
                                 err: "You already have a pending friendship!",
+                                alreadyFriends: false,
                                 _id: existingPendingFriendship._id
                             });
                         }
