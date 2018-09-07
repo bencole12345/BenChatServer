@@ -4,10 +4,6 @@ const User = require('../models/user');
 const mongoose = require('mongoose');
 
 exports.createConversation = function(req, res) {
-    if (!req.body.conversationName)
-        return res.status(400).send({
-            error: "You must include conversationName."
-        });
     if (req.body.otherUsers) {
         User.findOne({ username: req.body.username }, function(err, creatingUser) {
             if (err) return res.status(500).send(err);
@@ -18,10 +14,7 @@ exports.createConversation = function(req, res) {
             console.log(creatingUser._id);
             var allParticipants = [creatingUser._id].concat(req.body.otherUsers);
             console.log(allParticipants);
-            const conversation = new Conversation({
-                participants: allParticipants,
-                name: req.body.conversationName
-            });
+            const conversation = new Conversation({ participants: allParticipants });
             conversation.save(function(err, conv) {
                 if (err) return res.status(500).send(err);
                 return res.status(201).send(conv);
