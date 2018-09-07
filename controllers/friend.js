@@ -126,7 +126,9 @@ exports.respondToFriendRequest = function(req, res) {
                             otherUser.save(function(err, result) {
                                 if (err) return res.status(500).send(err);
                                 if (!result) return res.status(500).send({error: "An internal error occurred."});
-                                return res.status(200).send();
+                                return res.status(200).send({
+                                    otherUser: otherUser
+                                });
                             });
                         })
                     });
