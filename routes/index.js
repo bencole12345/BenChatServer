@@ -51,5 +51,6 @@ friendRouter.use('/add', requireLogin, FriendController.addFriend);
 friendRouter.use('/all', requireLogin, FriendController.allFriends);
 friendRouter.use('/all-requests', requireLogin, FriendController.allFriendRequests);
 friendRouter.use('/respond', requireLogin, FriendController.respondToFriendRequest);
+friendRouter.use('/cancel', requireLogin, FriendController.cancelFriendRequest);
 
 module.exports = router;

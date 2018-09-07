@@ -1,3 +1,5 @@
+const mongoose = require('mongoose');
+
 const FriendRequest = require('../models/friendRequest');
 const User = require('../models/user');
 
@@ -97,6 +99,7 @@ exports.allFriendRequests = function(req, res) {
  */
 exports.respondToFriendRequest = function(req, res) {
     if (!req.body.friendRequestId) return res.status(400).send({error: "You must include friendRequestId."});
+    if (!mongoose.Types.ObjectId.isValid(req.body.friendRequestId)) return res.status(400).send({error: "Invalid friendRequestId."});
     if (req.body.response !== "accept" && req.body.response !== "decline")
         return res.status(400).send({error: "You must include 'response' with the value 'accept' or 'decline'."});
     User.findOne({username: req.body.username}, function(err, user) {
@@ -132,6 +135,31 @@ exports.respondToFriendRequest = function(req, res) {
                     if (err) return res.status(500).send(err);
                     return res.status(200).send("Deleted!");
                 })
+            }
+        });
+    });
+};
+
+/**
+ * Cancel a friend request that was sent.
+ */
+exports.cancelFriendRequest = function(req, res) {
+    if (!req.body.friendRequestId) return res.status(400).send({error: "You must include friendRequestId."});
+    if (!mongoose.Types.ObjectId.isValid(req.body.friendRequestId)) return res.status(400).send({error: "Invalid friendRequestId."});
+    User.findOne({username: req.body.username}, function(err, user) {
+        if (err) return res.status(500).send(err);
+        FriendRequest.findById(req.body.friendRequestId, function(err, friendRequest) {
+            if (err) return res.status(500).send(err);
+            if (!friendRequest) return res.status(404).send({error: "Friend request not found."});
+            console.log(friendRequest);
+            console.log(user);
+            if (friendRequest.sentFrom._id.equals(user._id)) {
+                FriendRequest.deleteOne({ _id: friendRequest._id }, function(err) {
+                    if (err) return res.status(200).send(err);
+                    return res.status(200).send("Deleted!");
+                });
+            } else {
+                return res.status(403).send({error: "You cannot cancel this friend request because you did not send it."});
             }
         });
     });
