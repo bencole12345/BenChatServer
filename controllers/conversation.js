@@ -8,16 +8,19 @@ exports.createConversation = function(req, res) {
         User.findOne({ username: req.body.username }, function(err, creatingUser) {
             if (err) return res.status(500).send(err);
             // TODO: Check the IDs for the other users exist
-            // TODO: Check that a conversation between these people doesn't already exist
-            // var allParticipants = [creatingUser._id] + req.body.otherUsers.map(x => mongoose.Types.ObjectId(x._id));
-            console.log(req.body.otherUsers);
-            console.log(creatingUser._id);
+            // TODO: Check against creating a conversation with no other people
             var allParticipants = [creatingUser._id].concat(req.body.otherUsers);
-            console.log(allParticipants);
-            const conversation = new Conversation({ participants: allParticipants });
-            conversation.save(function(err, conv) {
-                if (err) return res.status(500).send(err);
-                return res.status(201).send(conv);
+            Conversation.findOne({ participants: allParticipants }, function(err, existingConversation) {
+                if (err) return res.status(200).send(err);
+                if (existingConversation) return res.status(400).send({
+                    error: "A conversation between these users already exists.",
+                    existingConversationId: existingConversation._id
+                });
+                const conversation = new Conversation({ participants: allParticipants });
+                conversation.save(function(err, conv) {
+                    if (err) return res.status(500).send(err);
+                    return res.status(201).send(conv);
+                });
             });
         });
     } else if (req.body.otherUsername) {
